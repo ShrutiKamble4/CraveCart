@@ -1,35 +1,36 @@
 package com.cravecart.db;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
+import java.net.URI;
 
 public class DBConnection {
 
     public static Connection getConnection() {
-        Connection con = null;
-
         try {
-            // Load MySQL Driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Get Railway MySQL full URL
-            String url = System.getenv("MYSQL_URL");
+            String mysqlUrl = System.getenv("MYSQL_URL");
 
-            if (url == null) {
-                System.out.println("MYSQL_URL is NULL. Check Railway variables.");
+            if (mysqlUrl == null) {
+                System.out.println("MYSQL_URL is NULL");
                 return null;
             }
 
-            // Connect using Railway provided URL
-            con = DriverManager.getConnection(url);
+            URI uri = new URI(mysqlUrl);
 
-            System.out.println("Database Connected Successfully!");
+            String userInfo = uri.getUserInfo();
+            String username = userInfo.split(":")[0];
+            String password = userInfo.split(":")[1];
+
+            String jdbcUrl = "jdbc:mysql://" + uri.getHost() + ":" + uri.getPort() + uri.getPath() +
+                    "?useSSL=false&allowPublicKeyRetrieval=true";
+
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            return DriverManager.getConnection(jdbcUrl, username, password);
 
         } catch (Exception e) {
-            System.out.println("Database Connection Failed!");
             e.printStackTrace();
+            return null;
         }
-
-        return con;
     }
 }

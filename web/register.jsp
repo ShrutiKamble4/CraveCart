@@ -25,6 +25,10 @@ button{
     border-radius:5px;
 }
 button:hover{background:#e65100;}
+.msg{
+    color:red;
+    margin-top:10px;
+}
 </style>
 </head>
 <body>
@@ -39,26 +43,59 @@ button:hover{background:#e65100;}
 <input type="text" name="phone" placeholder="Phone">
 <button type="submit">Register</button>
 </form>
-</div>
 
 <%
-String n=request.getParameter("name");
-String e=request.getParameter("email");
-String p=request.getParameter("password");
-String ph=request.getParameter("phone");
+String message = "";
 
-if(n!=null){
-    Connection con=DBConnection.getConnection();
-    PreparedStatement ps=con.prepareStatement(
-    "INSERT INTO users(name,email,password,phone) VALUES(?,?,?,?)");
-    ps.setString(1,n);
-    ps.setString(2,e);
-    ps.setString(3,p);
-    ps.setString(4,ph);
-    ps.executeUpdate();
-    response.sendRedirect("login.jsp");
+if("POST".equalsIgnoreCase(request.getMethod())){
+
+    String n = request.getParameter("name");
+    String e = request.getParameter("email");
+    String p = request.getParameter("password");
+    String ph = request.getParameter("phone");
+
+    Connection con = null;
+    PreparedStatement ps = null;
+
+    try{
+        con = DBConnection.getConnection();
+
+        if(con == null){
+            message = "Database connection failed. Check Railway variables.";
+        } else {
+
+            ps = con.prepareStatement(
+            "INSERT INTO users(name,email,password,phone) VALUES(?,?,?,?)");
+
+            ps.setString(1,n);
+            ps.setString(2,e);
+            ps.setString(3,p);
+            ps.setString(4,ph);
+
+            ps.executeUpdate();
+
+            response.sendRedirect("login.jsp");
+        }
+
+    } catch(Exception ex){
+        ex.printStackTrace();
+        message = "Registration failed: " + ex.getMessage();
+    } finally {
+        try{
+            if(ps!=null) ps.close();
+            if(con!=null) con.close();
+        } catch(Exception e1){
+            e1.printStackTrace();
+        }
+    }
 }
 %>
+
+<% if(!message.equals("")){ %>
+    <div class="msg"><%= message %></div>
+<% } %>
+
+</div>
 
 </body>
 </html>
